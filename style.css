@@ -30,4 +30,3 @@ body{background:radial-gradient(ellipse at 10% 8%,#d2ebda,transparent 35%),radia
 #withdrawalDetailsForm label{display:block;margin:0 0 9px;font-size:12px;font-weight:700}#withdrawalDetailsForm input{width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:9px;font:inherit}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.form-grid .full-width{grid-column:1/-1}
 
 .art-price{position:absolute;top:10px;right:10px;padding:5px 8px;border:1px solid #f0dfb9;border-radius:20px;background:#fff8e8;color:#8a5a08;font-size:10px;font-weight:800;white-space:nowrap;box-shadow:0 2px 7px #18231d12}
-
