@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Games · Share Market</title><link rel="stylesheet" href="style.css">
+</head><body><section class="login-screen" id="loginScreen"><form class="login-card" id="loginForm"><div class="login-mark">G</div><p class="login-kicker">GAMES ACCOUNT</p><h1>Welcome back</h1><p class="login-copy">Enter the User ID shared with you on WhatsApp.</p><label for="userId">User ID</label><input id="userId" name="userId" type="text" autocomplete="username" placeholder="Enter your User ID" required><button class="login-button" id="loginButton" type="submit">Log in</button><p class="login-status" id="loginStatus" role="status" aria-live="polite"></p></form></section>
+<main class="phone" id="appShell" hidden><header class="top"><h1>GAMES</h1><div class="balance"><span class="money-icon">$</span><span>Balance <b id="balance">2000</b></span></div><button class="deposit-open" id="depositOpen" type="button" aria-label="Add deposit" title="Deposit">+</button><div class="menu-wrap"><button class="dots" id="menuBtn" aria-label="Menu">⋮</button><div class="menu" id="menu"><button data-action="sell">My shares</button><button data-action="buy">Buy shares</button><button data-action="withdraw">Withdraw</button></div></div></header><section class="intro"><h2>Pick your style</h2><p>Buy clothing shares with coins. Sell any share you own.</p><button class="update-btn" id="updateBtn">✦ New update</button></section><div class="section-title">T-shirts <small>10 products</small></div><section class="grid" id="shirts"></section><div class="section-title">Pants <small>10 products</small></div><section class="grid" id="pants"></section><div class="notice">New members get <b>20 coins</b> to start. Your balance updates when you buy or sell shares.</div><nav class="bottom"><span>‹</span><span class="active">▦</span><span>☰</span><span>□</span></nav></main><div class="modal-back" id="modalBack"><div class="modal"><h3 id="modalTitle">Withdraw coins</h3><p id="modalText">Select an amount to withdraw. Minimum withdrawal is $20.</p><div class="modal-row"><select id="withdrawAmount" aria-label="Select withdrawal amount"><option value="">Select amount</option><option value="20">$20</option><option value="50">$50</option><option value="100">$100</option><option value="200">$200</option><option value="300">$300</option></select><button class="buy" id="withdrawBtn">Continue</button><button class="sell cancel" id="cancelBtn">Close</button></div></div></div><div class="modal-back" id="sharesBack"><div class="modal"><h3>My shares</h3><p>Your purchased shares and their current sell prices.</p><div id="mySharesList"></div><div class="modal-row"><button class="sell cancel" id="sharesClose">Close</button></div></div></div><div class="modal-back" id="updateBack"><div class="modal"><h3>New update</h3><p>20 clothing share products are now available: 10 T-shirts and 10 pants, priced from 10 to 450 coins. Buy shares when you have enough balance, then sell them from My shares.</p><div class="modal-row"><button class="sell cancel" id="updateClose">Close</button></div></div></div><div class="toast" id="toast"></div>
+<script src="script.js" defer></script></body></html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
