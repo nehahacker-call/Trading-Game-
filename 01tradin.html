@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Games · Share Market</title>
+<?!= include("styles"); ?>
+<style>
+#appShell[hidden]{display:none!important}
+#appShell:not([hidden]){display:flex!important;flex-direction:column;align-items:stretch;width:min(440px,100%)}
+.intro{width:calc(100% - 28px);height:auto;min-height:0;margin:10px auto 6px;padding:12px 14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;box-sizing:border-box}
+.intro h2{font-size:17px;margin:0}.intro p{width:100%;margin:0;color:var(--muted);font-size:13px}
+.phone{min-height:100vh;padding-bottom:78px;overflow:visible}
+.grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.card{min-width:0}
+</style>
+</head>
+<body>
+<section class="login-screen" id="loginScreen">
+  <form class="login-card" id="loginForm">
+    <div class="login-mark">G</div><p class="login-kicker">GAMES ACCOUNT</p>
+    <h1>Welcome back</h1><p class="login-copy">Enter the User ID shared with you.</p>
+    <label for="userId">USERID</label><input id="userId" name="userId" type="text" autocomplete="username" required>
+    <button class="login-button" id="loginButton" type="submit">Log in</button>
+    <p class="login-status" id="loginStatus" role="status" aria-live="polite"></p>
+  </form>
+</section>
+<main class="phone" id="appShell" hidden>
+  <header class="top">
+    <h1>GAMES</h1><div class="balance"><span class="money-icon">$</span><span>Balance <b id="balance">0</b></span></div>
+    <div class="menu-wrap"><button class="dots" id="menuBtn" aria-label="Menu">⋮</button>
+      <div class="menu" id="menu"><button data-action="shares">My shares</button><button data-action="buy">Buy shares</button><button data-action="logout">Log out</button></div>
+    </div>
+  </header>
+  <section class="intro"><h2>Pick your style</h2><p>Buy clothing shares with coins. Sell any share you own.</p><button class="update-btn" id="updateBtn">✦ New update</button></section>
+  <div class="section-title">T-shirts <small id="shirtCount">0 products</small></div><section class="grid" id="shirts"></section>
+  <div class="section-title">Pants <small id="pantsCount">0 products</small></div><section class="grid" id="pants"></section>
+  <div class="notice">Your balance, purchased products and share quantities are saved in Google Sheets.</div>
+  <nav class="bottom"><span>‹</span><span class="active">▦</span><span>☰</span><span>□</span></nav>
+</main>
+<div class="modal-back" id="sharesBack"><div class="modal"><h3>My shares</h3><p>Your purchased shares and their current sell prices.</p><div id="mySharesList"></div><div class="modal-row"><button class="sell cancel" data-close="sharesBack">Close</button></div></div></div>
+<div class="modal-back" id="updateBack"><div class="modal"><h3>New update</h3><p>Product names and prices come from the Products tab in Google Sheets.</p><div class="modal-row"><button class="sell cancel" data-close="updateBack">Close</button></div></div></div>
+<div class="toast" id="toast"></div>
+<?!= include("client"); ?>
+</body>
+</html>
