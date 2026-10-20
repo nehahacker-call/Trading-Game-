@@ -1,0 +1,153 @@
+<script>
+(() => {
+  const $ = selector => document.querySelector(selector);
+  const colors = ["#6d9a78","#7699bd","#d58b6d","#8877aa","#d0a64f","#558c8c","#bf7182","#7d8b65","#b37d4f","#6684a7"];
+  let token = "";
+  let state = null;
+
+  const api = (name, ...args) => new Promise((resolve, reject) => {
+    if (!window.google || !google.script || !google.script.run) {
+      reject(new Error("এই website-টো Apps Script Web App URL-ত খোলক।"));
+      return;
+    }
+    const runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(error => {
+      reject(new Error(error && error.message ? error.message : "Server error"));
+    });
+    if (name === "validateUserId") runner.validateUserId(...args);
+    else if (name === "getDashboard") runner.getDashboard(...args);
+    else if (name === "buyShare") runner.buyShare(...args);
+    else if (name === "sellShare") runner.sellShare(...args);
+    else reject(new Error("Unknown server function: " + name));
+  });
+
+  const escapeHtml = value => String(value == null ? "" : value).replace(/[&<>"']/g, char => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "'":"&#39;"
+  }[char]));
+
+  function toast(message) {
+    const element = $("#toast");
+    element.textContent = message;
+    element.classList.add("show");
+    setTimeout(() => element.classList.remove("show"), 2600);
+  }
+
+  function productKind(product) {
+    return /pant|trouser/i.test(product.name + " " + product.productId) ? "pants" : "shirt";
+  }
+
+  function shareCount(productId) {
+    const holding = state.holdings.find(item => item.productId === productId);
+    return holding ? holding.quantity : 0;
+  }
+
+  function productCard(product, index) {
+    const kind = productKind(product);
+    const color = colors[index % colors.length];
+    const quantity = shareCount(product.productId);
+    const style = product.style || ("STYLE " + String(index + 1).padStart(2, "0"));
+    const image = product.imageURL && /^https:\/\//i.test(product.imageURL)
+      ? '<img src="' + escapeHtml(product.imageURL) + '" alt="' + escapeHtml(product.name) + '" style="width:100%;height:100%;object-fit:cover">'
+      : kind === "pants"
+        ? '<svg viewBox="0 0 120 120" aria-label="Pants"><path fill="' + color + '" d="M30 14h60l-4 91H62l-2-51-3 51H30z"/></svg>'
+        : '<svg viewBox="0 0 120 120" aria-label="T-shirt"><path fill="' + color + '" d="M38 18 49 12h22l11 6 21 13-12 23-13-8v58H42V46l-13 8-12-23z"/></svg>';
+    return '<article class="card"><div class="art ' + kind + '" style="background:linear-gradient(145deg,' + color + '28,#e8eee9)"><span class="tag">' + escapeHtml(style) + '</span>' + image + '</div><div class="details"><div class="name">' + escapeHtml(product.name) + '</div><div class="sub">Buy $' + escapeHtml(product.buyPrice) + ' · Sell $' + escapeHtml(product.sellPrice) + '</div><div class="price-row"><div class="price">$' + escapeHtml(product.buyPrice) + '</div><button class="buy" data-buy="' + escapeHtml(product.productId) + '">Buy 1</button></div>' + (quantity ? '<div class="owned-row"><span>' + quantity + ' share' + (quantity === 1 ? "" : "s") + ' owned</span><button class="sell" data-sell="' + escapeHtml(product.productId) + '">Sell 1</button></div>' : "") + '</div></article>';
+  }
+
+  function render() {
+    $("#balance").textContent = state.balance;
+    const shirts = state.products.filter(product => productKind(product) === "shirt");
+    const pants = state.products.filter(product => productKind(product) === "pants");
+    $("#shirtCount").textContent = shirts.length + " products";
+    $("#pantsCount").textContent = pants.length + " products";
+    $("#shirts").innerHTML = shirts.map((product, index) => productCard(product, index)).join("");
+    $("#pants").innerHTML = pants.map((product, index) => productCard(product, index + 10)).join("");
+  }
+
+  async function refresh() {
+    state = await api("getDashboard", token);
+    render();
+  }
+
+  function showApp() {
+    $("#loginScreen").hidden = true;
+    $("#appShell").hidden = false;
+  }
+
+  $("#loginForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = $("#loginButton");
+    const status = $("#loginStatus");
+    button.disabled = true;
+    button.textContent = "Checking…";
+    status.textContent = "";
+    try {
+      const result = await Promise.race([
+        api("validateUserId", $("#userId").value.trim()),
+        new Promise((resolve, reject) => setTimeout(() => reject(new Error("Server response নাহিল। Apps Script deployment আৰু Google Sheet access পৰীক্ষা কৰা।")), 20000))
+      ]);
+      if (!result || !result.valid) throw new Error("Invalid User ID. Please check the ID.");
+      token = result.token;
+      await refresh();
+      showApp();
+    } catch (error) {
+      status.textContent = error.message;
+    } finally {
+      button.disabled = false;
+      button.textContent = "Log in";
+    }
+  });
+
+  $("#menuBtn").addEventListener("click", () => $("#menu").classList.toggle("open"));
+  document.addEventListener("click", event => {
+    if (!event.target.closest(".menu-wrap")) $("#menu").classList.remove("open");
+    const close = event.target.closest("[data-close]");
+    if (close) $("#" + close.dataset.close).classList.remove("show");
+  });
+
+  $("#menu").addEventListener("click", event => {
+    const action = event.target.closest("[data-action]");
+    if (!action) return;
+    $("#menu").classList.remove("open");
+    if (action.dataset.action === "shares") showShares();
+    if (action.dataset.action === "buy") $("#shirts").scrollIntoView({ behavior: "smooth" });
+    if (action.dataset.action === "logout") {
+      location.reload();
+    }
+  });
+
+  document.body.addEventListener("click", async event => {
+    const buy = event.target.closest("[data-buy]");
+    const sell = event.target.closest("[data-sell]");
+    if (!buy && !sell) return;
+    const button = buy || sell;
+    button.disabled = true;
+    try {
+      const result = buy
+        ? await api("buyShare", token, buy.dataset.buy, 1)
+        : await api("sellShare", token, sell.dataset.sell, 1);
+      state.balance = result.balance;
+      await refresh();
+      if ($("#sharesBack").classList.contains("show")) showShares();
+      toast(buy ? "Purchase and balance saved to Google Sheets." : "Sale and balance saved to Google Sheets.");
+    } catch (error) {
+      toast(error.message);
+      try { await refresh(); } catch (_) {}
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  function showShares() {
+    const list = $("#mySharesList");
+    const entries = state.holdings.filter(holding => holding.quantity > 0);
+    list.innerHTML = entries.length ? entries.map(holding => {
+      const product = state.products.find(item => item.productId === holding.productId);
+      if (!product) return "";
+      return '<div class="owned-card"><div><b>' + escapeHtml(product.name) + '</b><small>' + holding.quantity + ' share(s) · sell price $' + escapeHtml(product.sellPrice) + '</small></div><button class="sell" data-sell="' + escapeHtml(product.productId) + '">Sell 1</button></div>';
+    }).join("") : "<p>You have no shares yet.</p>";
+    $("#sharesBack").classList.add("show");
+  }
+
+  $("#updateBtn").addEventListener("click", () => $("#updateBack").classList.add("show"));
+})();
+</script>
